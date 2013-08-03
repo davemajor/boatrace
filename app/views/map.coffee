@@ -89,13 +89,13 @@ module.exports = class MapView extends Backbone.View
 
         label = @paper.text @x, @y, 0
 
-        dist = -dist if ew == "east"
+        dist = -dist if ew == "west"
         mod = 1
         if ns == "south"
-            if ew == "east"
+            if ew == "west"
                 mod = -1
         else
-            if ew == "west"
+            if ew == "east"
                 mod = -1
 
         ewLine = @paper.path("M" + @x + " " + @y + "L" + (@x + dist) + " " + @y)
@@ -106,9 +106,9 @@ module.exports = class MapView extends Backbone.View
         .toBack()
         ewLabelPos = ewLine.getPointAtLength(Math.abs dist)
         if ew == "east"
-            ewLabel = @paper.text(ewLabelPos.x - 20, ewLabelPos.y, "E")
+            ewLabel = @paper.text(ewLabelPos.x + 20, ewLabelPos.y, "E")
         else
-            ewLabel = @paper.text(ewLabelPos.x + 20, ewLabelPos.y, "W")
+            ewLabel = @paper.text(ewLabelPos.x - 20, ewLabelPos.y, "W")
         line = ewLine.clone().toBack()
         i = 0
         animateLine = =>
@@ -128,7 +128,23 @@ module.exports = class MapView extends Backbone.View
                     ewLine.remove()
                     ewLabel.remove()
                     $("path").css 'opacity', 0.4
-                    _this.trigger "step"
+
+                    # Check for boundary intersection
+                    s = Raphael.pathIntersection(
+                        _this.boundary.attr('path').toString()
+                        rotatedLine.attr('path').toString()
+                    )
+                    if s.length > 0
+                        # Kill it
+                        _this.playing = false
+                        _this.paper.path(rotatedLine.attr('path')).attr({
+                            'stroke-dasharray':'.',
+                            'stroke-width':'3',
+                            'stroke': "#ff0000"
+                        })
+                    else
+                        # Next
+                        _this.trigger "step"
 
             line.transform "r" + mod*i + ","+@x+","+@y
 
