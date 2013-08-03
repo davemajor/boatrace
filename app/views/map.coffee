@@ -16,6 +16,26 @@ module.exports = class MapView extends Backbone.View
         @playing = false
         @startTime = 0
 
+        Hipster.Collections.Bearings.reset(
+            [
+                {"directionX":"east",
+                "directionY":"south",
+                "distance":"200",
+                "degrees":"90"}
+                ,{"directionX":"east",
+                "directionY":"south",
+                "degrees":"45",
+                "distance":"325"}
+                ,{"directionX":"east",
+                "directionY":"north",
+                "distance":"300",
+                "degrees":"60"},
+                {"directionX":"west",
+                "directionY":"north",
+                "distance":"400",
+                "degrees":"25"}
+            ]
+        )
         @on 'race', @race, this
         @on 'step', @drawStep, this
         @on 'tick', @tick, this
@@ -29,7 +49,7 @@ module.exports = class MapView extends Backbone.View
         @time = 0
         @elapsed = 0
         @step = 0
-        @boat = @paper.image("images/dot.png", @x-11, @y-12, 22, 24)
+        @boat = @paper.image("images/boat.png", @x-11, @y-12, 22, 24)
 
         buoys = [
             {x: 140, y: 150},
@@ -55,7 +75,14 @@ module.exports = class MapView extends Backbone.View
 
     race: ->
         @reset()
-        
+        @endZone = @paper.circle(
+            @boat.attr('x') + 11
+            @boat.attr('y') + 12
+            0
+        ).animate(
+            r: 20
+        , 200
+        ).toFront()
         @startTime = new Date().getTime()
         @playing = true
         @timer = setTimeout @tick(), 100
@@ -66,20 +93,35 @@ module.exports = class MapView extends Backbone.View
 
         if @step < Hipster.Collections.Bearings.length
             $("path").css('opacity', 0.4)
-            @paper.circle(@boat.attr("x") + 11, @boat.attr("y") + 12, 10).attr
-                fill: "#0289FD"
-                stroke: "none"
-                opacity: "0.2"
+            @paper.image(
+                "images/boat.png"
+                @boat.attr("x")
+                @boat.attr("y")
+                22
+                24
+            ).attr
+                opacity: 0.4
 
             @makeMovement Hipster.Collections.Bearings.at @step
 
             @step++
         else
             @playing = false
+            @check()
 
     render: ->
         @paper = Raphael(@el, '100%', '100%')
         @reset()
+
+    check: ->
+        inEndPoint = @paper.getElementsByPoint(
+            @boat.attr('x')
+            @boat.attr('y')
+        )
+        success = _.find inEndPoint.items, (element) =>
+            element.type == "circle"
+        success = success != undefined
+        console.log success
 
     makeMovement: (model) =>
         dist = parseFloat model.get('distance')
@@ -141,7 +183,7 @@ module.exports = class MapView extends Backbone.View
                             'stroke-dasharray':'.',
                             'stroke-width':'3',
                             'stroke': "#ff0000"
-                        })
+                        }).toBack()
                     else
                         # Next
                         _this.trigger "step"
