@@ -16,26 +16,28 @@ module.exports = class MapView extends Backbone.View
         @playing = false
         @startTime = 0
 
-        Hipster.Collections.Bearings.reset(
-            [
-                {"directionX":"east",
-                "directionY":"south",
-                "distance":"200",
-                "degrees":"90"}
-                ,{"directionX":"east",
-                "directionY":"south",
-                "degrees":"45",
-                "distance":"325"}
-                ,{"directionX":"east",
-                "directionY":"north",
-                "distance":"300",
-                "degrees":"60"},
-                {"directionX":"west",
-                "directionY":"north",
-                "distance":"400",
-                "degrees":"25"}
-            ]
-        )
+        # Handy successful path
+        # Hipster.Collections.Bearings.reset(
+        #     [
+        #         {"directionX":"east",
+        #         "directionY":"south",
+        #         "distance":"200",
+        #         "degrees":"90"}
+        #         ,{"directionX":"east",
+        #         "directionY":"south",
+        #         "degrees":"45",
+        #         "distance":"325"}
+        #         ,{"directionX":"east",
+        #         "directionY":"north",
+        #         "distance":"300",
+        #         "degrees":"60"},
+        #         {"directionX":"west",
+        #         "directionY":"north",
+        #         "distance":"400",
+        #         "degrees":"25"}
+        #     ]
+        # )
+
         @on 'race', @race, this
         @on 'step', @drawStep, this
         @on 'tick', @tick, this
@@ -121,7 +123,7 @@ module.exports = class MapView extends Backbone.View
         success = _.find inEndPoint.items, (element) =>
             element.type == "circle"
         success = success != undefined
-        console.log success
+
 
     makeMovement: (model) =>
         dist = parseFloat model.get('distance')
