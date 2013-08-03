@@ -90,7 +90,13 @@ module.exports = class MapView extends Backbone.View
         label = @paper.text @x, @y, 0
 
         dist = -dist if ew == "east"
-        deg = -deg if ns == "south"
+        mod = 1
+        if ns == "south"
+            if ew == "east"
+                mod = -1
+        else
+            if ew == "west"
+                mod = -1
 
         ewLine = @paper.path("M" + @x + " " + @y + "L" + (@x + dist) + " " + @y)
         .attr
@@ -109,7 +115,7 @@ module.exports = class MapView extends Backbone.View
             moveBoat = =>
                 rotatedLine = _this.paper.path(
                     Raphael.transformPath(
-                        line.attr("path"), "r" + deg + "," + @x + "," + @y
+                        line.attr("path"), "r" + mod*deg + "," + @x + "," + @y
                     )
                 ).attr(stroke: "none")
                 target = rotatedLine.getPointAtLength(Math.abs dist)
@@ -124,10 +130,7 @@ module.exports = class MapView extends Backbone.View
                     $("path").css 'opacity', 0.4
                     _this.trigger "step"
 
-            if ns == "south"
-                line.transform "r" + -i + ","+@x+","+@y
-            else
-                line.transform "r" + i + ","+@x+","+@y
+            line.transform "r" + mod*i + ","+@x+","+@y
 
             i++
             label.attr "text", i + "°"

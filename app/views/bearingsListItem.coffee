@@ -21,5 +21,5 @@ module.exports = class BearingsListItemView extends Backbone.View
         'click .action-remove-item': "clear"
         'change input': 'updateInput'
         'keyup input': 'updateInput'
-        'keyup select': 'updateInput'
-        'keyup select': 'updateInput'
+        'change select': 'updateInput'
+        'click select': 'updateInput'
