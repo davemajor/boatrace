@@ -55,41 +55,23 @@ module.exports = class MapView extends Backbone.View
 
     race: ->
         @reset()
-        _.each Hipster.Collections.Bearings.models, (bearing) =>
-            if bearing.isValid()
-                @steps.push @makeMovement bearing
-            else
-                bearing.destroy()
-        if @steps.length > 0
-            @startTime = new Date().getTime()
-            @playing = true
-            @timer = setTimeout @tick(), 100
-            @drawStep()
+        
+        @startTime = new Date().getTime()
+        @playing = true
+        @timer = setTimeout @tick(), 100
+        @drawStep()
 
     drawStep: ->
         attrs = {"stroke-dasharray":'.', 'stroke-width':'3', 'stroke': '#fff'}
-        if @step < @steps.length
+
+        if @step < Hipster.Collections.Bearings.length
             $("path").css('opacity', 0.4)
             @paper.circle(@boat.attr("x") + 11, @boat.attr("y") + 12, 10).attr
                 fill: "#0289FD"
                 stroke: "none"
                 opacity: "0.2"
 
-            @paper.path(@steps[@step].path).attr attrs
-            lastPath = @paper.path(@steps[@step].pathRadial).attr attrs
-            @boat.animate(@steps[@step].animation).toFront()
-
-            # s = Raphael.pathIntersection @boundary.attr('path').toString(),
-            # @steps[@step].pathRadial
-
-            # if s.length > 0
-            #     @step = 'christ'
-            #     lastPath.remove()
-            #     @paper.path(@steps[@step].pathRadial).attr({
-            #         'stroke-dasharray':'.',
-            #         'stroke-width':'3',
-            #         'stroke': "#ff0000"
-            #     })
+            @makeMovement Hipster.Collections.Bearings.at @step
 
             @step++
         else
@@ -99,38 +81,58 @@ module.exports = class MapView extends Backbone.View
         @paper = Raphael(@el, '100%', '100%')
         @reset()
 
-    makeMovement: (model) ->
+    makeMovement: (model) =>
         dist = parseFloat model.get('distance')
         deg = parseFloat model.get('degrees')
         ew = model.get('directionX')
         ns = model.get('directionY')
 
-        if ew == "east"
-            path = Raphael.format("M{0} {1} L {2} {3}", @x, @y, @x + dist, @y)
-            if ns == "north"
-                newX = @x + dist * Math.sin((deg + 90) * Math.PI / 180)
-                newY = @y + dist * Math.cos((deg + 90) * Math.PI / 180)
-            else
-                newX = @x + dist * Math.sin((90 - deg) * Math.PI / 180)
-                newY = @y + dist * Math.cos((90 - deg) * Math.PI / 180)
-        else
-            path = Raphael.format("M{0} {1} L {2} {3}", @x, @y, @x - dist, @y)
-            if ns == "north"
-                newX = @x + dist * Math.sin((270 - deg) * Math.PI / 180)
-                newY = @y + dist * Math.cos((270 - deg) * Math.PI / 180)
-            else
-                newX = @x + dist * Math.sin((deg + 270) * Math.PI / 180)
-                newY = @y + dist * Math.cos((deg + 270) * Math.PI / 180)
-        pathRadial = Raphael.format("M{0} {1} L {2} {3}", @x, @y, newX, newY)
-        @x = newX
-        @y = newY
+        label = @paper.text @x, @y, 0
 
-        # Returns
-        path: path
-        pathRadial: pathRadial
-        animation: Raphael.animation(
-            x: newX - 11
-            y: newY - 12
-        , (dist / @speed) * 100, =>
-            @trigger 'step'
-        )
+        dist = -dist if ew == "east"
+        deg = -deg if ns == "south"
+
+        ewLine = @paper.path("M" + @x + " " + @y + "L" + (@x + dist) + " " + @y)
+        .attr
+            "stroke-dasharray":'.'
+            'stroke-width':'3'
+            'stroke': '#fff'
+        .toBack()
+        ewLabelPos = ewLine.getPointAtLength(Math.abs dist)
+        if ew == "east"
+            ewLabel = @paper.text(ewLabelPos.x - 20, ewLabelPos.y, "E")
+        else
+            ewLabel = @paper.text(ewLabelPos.x + 20, ewLabelPos.y, "W")
+        line = ewLine.clone().toBack()
+        i = 0
+        animateLine = =>
+            moveBoat = =>
+                rotatedLine = _this.paper.path(
+                    Raphael.transformPath(
+                        line.attr("path"), "r" + deg + "," + @x + "," + @y
+                    )
+                ).attr(stroke: "none")
+                target = rotatedLine.getPointAtLength(Math.abs dist)
+                _this.boat.animate
+                    x: target.x - 11
+                    y: target.y - 12
+                , 500, =>
+                    _this.x = target.x
+                    _this.y = target.y
+                    ewLine.remove()
+                    ewLabel.remove()
+                    $("path").css 'opacity', 0.4
+                    _this.trigger "step"
+
+            if ns == "south"
+                line.transform "r" + -i + ","+@x+","+@y
+            else
+                line.transform "r" + i + ","+@x+","+@y
+
+            i++
+            label.attr "text", i + "°"
+            if i < Math.abs deg
+                setTimeout animateLine, 10
+            else
+                moveBoat()
+        animateLine()
