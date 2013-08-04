@@ -29,7 +29,9 @@
 
         "coffeelint-brunch": ">= 1.0 < 1.7",
 
-        "auto-reload-brunch": ">= 1.0 < 1.7"
+        "auto-reload-brunch": ">= 1.0 < 1.7",
+        "express": "3.3.4",
+        "mongoose": "3.6.14"
     },
     "devDependencies": {
         "karma": "0.8.1"

@@ -1,3 +1,5 @@
+ResultsView = require 'views/resultsView'
+
 module.exports = class MapView extends Backbone.View
     className: 'map'
     el: '.map'
@@ -123,6 +125,15 @@ module.exports = class MapView extends Backbone.View
         success = _.find inEndPoint.items, (element) =>
             element.type == "circle"
         success = success != undefined
+
+        if success
+            console.log "Saving"
+            Hipster.Models.Route.set
+                time: @elapsed
+                bearings: Hipster.Collections.Bearings
+            Hipster.Models.Route.save()
+            Hipster.Views.BearingsListView.close()
+            Hipster.Views.ResultsView = new ResultsView
 
 
     makeMovement: (model) =>

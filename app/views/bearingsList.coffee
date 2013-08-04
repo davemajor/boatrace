@@ -30,6 +30,10 @@ module.exports = class BearingsListView extends Backbone.View
     triggerRace: ->
         Hipster.Views.MapView.trigger 'race'
 
+    close: ->
+        $(@el).empty()
+        $(@el).unbind()
+
     events: ->
         'click .action-add-item': 'triggerAdd'
         'click .action-race': 'triggerRace'
