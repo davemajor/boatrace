@@ -79,7 +79,7 @@ module.exports = class MapView extends Backbone.View
             @boat.attr('y') + 12
             0
         ).attr(
-            "fill": "red"
+            "fill": "white"
             "opacity": 0.2
             "stroke": "none"
         ).animate(
@@ -227,10 +227,10 @@ module.exports = class MapView extends Backbone.View
 
             line.transform "r" + mod*i + ","+@x+","+@y
 
-            i++
             label.attr
                 text: i + "°"
             if i < Math.abs deg
+                i++
                 setTimeout animateLine, 10
             else
                 moveBoat()
