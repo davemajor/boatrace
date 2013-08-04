@@ -9,15 +9,16 @@ module.exports = class AppViewView extends Backbone.View
     el: '.app'
 
     initialize: ->
-        Hipster.Views.BearingsListView = new BearingsListView
-        Hipster.Views.MapView = new MapView
 
         Hipster.Collections.Routes = new RoutesCollection
+        Hipster.Collections.Routes.on 'sync', @render
+
         Hipster.Models.Route = new RouteModel
 
         Hipster.Collections.Routes.fetch()
 
-        @render()
 
     render: ->
+        Hipster.Views.BearingsListView = new BearingsListView
+        Hipster.Views.MapView = new MapView
 

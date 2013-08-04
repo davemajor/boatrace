@@ -16,7 +16,19 @@ module.exports = class BearingsListView extends Backbone.View
         @render()
 
     render: ->
+        topString = ""
+        times = Hipster.Collections.Routes.pluck 'time'
+        times = times.sort(
+            (a, b) ->
+                return a-b
+        )
+        times = times.getUnique()
+        top = _.first times, 5
+
+        topString = top.join ', '
+        topString = topString.replace(/,([^,]*)$/,' &'+'$1')
         $(@el).html @template
+            top: topString + ' minutes'
         Hipster.Views.TimerView = new TimerView
         @triggerAdd()
 
@@ -47,3 +59,15 @@ module.exports = class BearingsListView extends Backbone.View
         'click .action-add-item': 'triggerAdd'
         'click .action-race': 'triggerRace'
 
+
+    Array::getUnique = ->
+    u = {}
+    a = []
+    i = 0
+    l = @length
+
+    while i < l
+        if a.indexOf(this[i]) == -1
+            a.push this[i]
+        ++i
+    a
