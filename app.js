@@ -5,14 +5,12 @@ var opts = { server: { auto_reconnect: true, socketOptions: { keepAlive: 1 }}};
 
 app.configure('development', function(){
   url = 'mongodb://localhost/boatrace';
-  // url = 'mongodb://blue:blue@widmore.mongohq.com:10000/blue';
   app.use(express.errorHandler({ dumpExceptions: true, showStack: true }));
   console.log("DEVELOPMENT")
 });
 
 app.configure('production', function(){
   app.use(express.errorHandler());
-  // url = 'mongodb://blue:blue@widmore.mongohq.com:10000/blue';
   console.log("production")
 });
 

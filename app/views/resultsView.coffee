@@ -21,6 +21,8 @@ module.exports = class ResultsViewView extends Backbone.View
             time >= parseFloat(result)
 
         @ranking = times.indexOf nearest
+        if @ranking == -1
+            @ranking++
         @ranking++
         @render()
 
