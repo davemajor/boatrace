@@ -19,28 +19,6 @@ module.exports = class MapView extends Backbone.View
         @startTime = 0
         @distanceTravelled = 0
 
-        # Handy successful path
-        # Hipster.Collections.Bearings.reset(
-        #     [
-        #         {"directionX":"east",
-        #         "directionY":"south",
-        #         "distance":"200",
-        #         "degrees":"90"}
-        #         ,{"directionX":"east",
-        #         "directionY":"south",
-        #         "degrees":"45",
-        #         "distance":"325"}
-        #         ,{"directionX":"east",
-        #         "directionY":"north",
-        #         "distance":"300",
-        #         "degrees":"60"},
-        #         {"directionX":"west",
-        #         "directionY":"north",
-        #         "distance":"400",
-        #         "degrees":"25"}
-        #     ]
-        # )
-
         @on 'race', @race, this
         @on 'step', @drawStep, this
         @on 'tick', @tick, this
@@ -49,6 +27,15 @@ module.exports = class MapView extends Backbone.View
         $('.error').hide()
         clearTimeout(@timer)
         @paper.clear()
+        @paper.path('M25 35 L125 35').attr(
+            'stroke':'white'
+            'stroke-width':'2'
+            'opacity': '0.4'
+        )
+        @paper.text(75, 25, "10 miles").attr(
+            'font-family':'Helvetica'
+            'fill':'white'
+        )
         @steps = []
         @x = 100
         @y = 100
@@ -158,23 +145,28 @@ module.exports = class MapView extends Backbone.View
 
 
     makeMovement: (model) =>
-        dist = parseFloat model.get('distance')
+        dist = parseFloat model.get('distance') * 10
         deg = parseFloat model.get('degrees')
         ew = model.get('directionX')
         ns = model.get('directionY')
 
         @distanceTravelled += dist
 
-        label = @paper.text @x, @y, 0
-
         dist = -dist if ew == "west"
         mod = 1
         if ns == "south"
+            label = @paper.text @x, @y + 20, 0
             if ew == "west"
                 mod = -1
         else
+            label = @paper.text @x, @y - 20, 0
             if ew == "east"
                 mod = -1
+
+        label.attr(
+            'font-family':'Helvetica'
+            'fill':'white'
+        )
 
         ewLine = @paper.path("M" + @x + " " + @y + "L" + (@x + dist) + " " + @y)
         .attr
@@ -184,9 +176,15 @@ module.exports = class MapView extends Backbone.View
         .toBack()
         ewLabelPos = ewLine.getPointAtLength(Math.abs dist)
         if ew == "east"
-            ewLabel = @paper.text(ewLabelPos.x + 20, ewLabelPos.y, "E")
+            ewLabel = @paper.text(ewLabelPos.x + 20, ewLabelPos.y, "E").attr(
+                'font-family':'Helvetica'
+                'fill':'white'
+            )
         else
-            ewLabel = @paper.text(ewLabelPos.x - 20, ewLabelPos.y, "W")
+            ewLabel = @paper.text(ewLabelPos.x - 20, ewLabelPos.y, "W").attr(
+                'font-family':'Helvetica'
+                'fill':'white'
+            )
         line = ewLine.clone().toBack()
         i = 0
         animateLine = =>
@@ -220,7 +218,7 @@ module.exports = class MapView extends Backbone.View
                             'stroke-width':'3',
                             'stroke': "#ff0000"
                         }).toBack()
-                        rotatedLine.remove()
+                        line.remove()
                         $('#timer > h3').hide()
                         $('.inside-buoys').show()
                     else
@@ -230,7 +228,8 @@ module.exports = class MapView extends Backbone.View
             line.transform "r" + mod*i + ","+@x+","+@y
 
             i++
-            label.attr "text", i + "°"
+            label.attr
+                text: i + "°"
             if i < Math.abs deg
                 setTimeout animateLine, 10
             else

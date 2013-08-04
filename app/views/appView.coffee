@@ -10,7 +10,6 @@ module.exports = class AppViewView extends Backbone.View
 
     initialize: ->
         Hipster.Views.BearingsListView = new BearingsListView
-        # Hipster.Views.BearingsListView = new ResultsView
         Hipster.Views.MapView = new MapView
 
         Hipster.Collections.Routes = new RoutesCollection
