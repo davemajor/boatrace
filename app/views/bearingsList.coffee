@@ -12,6 +12,7 @@ module.exports = class BearingsListView extends Backbone.View
     initialize: ->
         Hipster.Collections.Bearings = new BearingsCollection
         Hipster.Collections.Bearings.on('add', @addNewItem)
+        Hipster.Collections.Bearings.on('add remove', @limitBearings)
         @render()
 
     render: ->
@@ -19,13 +20,21 @@ module.exports = class BearingsListView extends Backbone.View
         Hipster.Views.TimerView = new TimerView
         @triggerAdd()
 
+    limitBearings: ->
+        num = Hipster.Collections.Bearings.models.length
+        if num == 8
+            $('.add-new').css('opacity',0.5)
+        else
+            $('.add-new').css('opacity',1)
+
     addNewItem: (bearing) ->
         view = new BearingsListItemView
             model: bearing
         $('.bearingsList ul').append view.render().el
 
     triggerAdd: ->
-        Hipster.Collections.Bearings.add new BearingModel
+        if Hipster.Collections.Bearings.models.length < 8
+            Hipster.Collections.Bearings.add new BearingModel
 
     triggerRace: ->
         Hipster.Views.MapView.trigger 'race'

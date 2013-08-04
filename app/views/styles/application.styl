@@ -1,11 +1,18 @@
 @import 'nib'
 @import '_base'
 
+.app
+    height: 100%
+
 .bearingsList
     background-color: #fff
     height: 100%
     right: 0
+    .add-new
+        float: left
+        padding-right: 20px
     ul
+        margin-bottom: 0px
         padding: 10px
         li
             list-style: none
@@ -14,7 +21,31 @@
                 width: 60px
             select
                 width: 70px
+
+        li.has-error
+            input
+                padding-right: 0px
+    button
+        margin-bottom: 20px
+    .lead
+        padding-bottom: 40px
+        text-indent: 0px
 .map
     height: 100%
     left: 0
     background-color: #A9C0D7
+
+footer
+    text-align: right
+    position: absolute
+    right: 40px
+    bottom: 40px !important
+
+.error
+    display: none
+    margin-top: 20px
+    padding-bottom: 0px
+    font-weight: 200
+    line-height: 1.4
+    font-size: 1.5em
+    text-indent: 0px

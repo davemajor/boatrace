@@ -5,10 +5,18 @@ module.exports = class BearingsListItemView extends Backbone.View
 
     initialize: ->
         @listenTo(@model, 'destroy', @remove)
+        @listenTo(@model, 'invalid', @triggerInvalid)
+        @listenTo(@model, 'valid', @triggerValid)
 
     render: ->
         $(@el).html @template
         @
+
+    triggerInvalid: ->
+        this.$el.addClass 'has-error'
+
+    triggerValid: ->
+        this.$el.removeClass 'has-error'
 
     clear: ->
         if Hipster.Collections.Bearings.length > 1

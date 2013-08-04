@@ -17,6 +17,7 @@ module.exports = class MapView extends Backbone.View
         @timer = 0
         @playing = false
         @startTime = 0
+        @distanceTravelled = 0
 
         # Handy successful path
         # Hipster.Collections.Bearings.reset(
@@ -45,6 +46,7 @@ module.exports = class MapView extends Backbone.View
         @on 'tick', @tick, this
 
     reset: ->
+        $('.error').hide()
         clearTimeout(@timer)
         @paper.clear()
         @steps = []
@@ -53,20 +55,24 @@ module.exports = class MapView extends Backbone.View
         @time = 0
         @elapsed = 0
         @step = 0
+        @distanceTravelled = 0
         @boat = @paper.image("images/boat.png", @x-11, @y-12, 22, 24)
 
         buoys = [
             {x: 140, y: 150},
             {x: 260, y: 400},
-            {x: 350, y: 480},
-            {x: 460, y: 300}
+            {x: 450, y: 480},
+            {x: 560, y: 200}
         ]
         _.each buoys, (buoy) =>
-            @paper.circle buoy.x, buoy.y, 10
+            @paper.image("images/buoy.png", buoy.x-12, buoy.y-12, 25, 25)
 
         @boundary = @paper.path 'M{0} {1} L{2} {3} {4} {5} {6} {7}z',
         buoys[0].x, buoys[0].y, buoys[1].x, buoys[1].y,
         buoys[2].x, buoys[2].y, buoys[3].x, buoys[3].y
+        @boundary.attr
+            'stroke': 'none'
+        
 
     tick: ->
         if @playing
@@ -78,13 +84,19 @@ module.exports = class MapView extends Backbone.View
             @timer = setTimeout(=> @trigger 'tick', (100 - diff))
 
     race: ->
+        if !Hipster.Collections.Bearings.models[0].isValid()
+            return
         @reset()
         @endZone = @paper.circle(
             @boat.attr('x') + 11
             @boat.attr('y') + 12
             0
+        ).attr(
+            "fill": "red"
+            "opacity": 0.2
+            "stroke": "none"
         ).animate(
-            r: 20
+            r: 40
         , 200
         ).toFront()
         @startTime = new Date().getTime()
@@ -96,18 +108,21 @@ module.exports = class MapView extends Backbone.View
         attrs = {"stroke-dasharray":'.', 'stroke-width':'3', 'stroke': '#fff'}
 
         if @step < Hipster.Collections.Bearings.length
-            $("path").css('opacity', 0.4)
-            @paper.image(
-                "images/boat.png"
-                @boat.attr("x")
-                @boat.attr("y")
-                22
-                24
-            ).attr
-                opacity: 0.4
+            if Hipster.Collections.Bearings.models[@step].isValid()
+                $("path").css('opacity', 0.4)
+                @paper.image(
+                    "images/boat.png"
+                    @boat.attr("x")
+                    @boat.attr("y")
+                    22
+                    24
+                ).attr
+                    opacity: 0.4
 
-            @makeMovement Hipster.Collections.Bearings.at @step
-
+                @makeMovement Hipster.Collections.Bearings.at @step
+            else
+                @playing = false
+                @check()
             @step++
         else
             @playing = false
@@ -118,6 +133,10 @@ module.exports = class MapView extends Backbone.View
         @reset()
 
     check: ->
+        if _this.distanceTravelled < _this.boundary.getTotalLength()
+            $('#timer > h3').hide()
+            $('.too-short').show()
+            return
         inEndPoint = @paper.getElementsByPoint(
             @boat.attr('x')
             @boat.attr('y')
@@ -127,13 +146,15 @@ module.exports = class MapView extends Backbone.View
         success = success != undefined
 
         if success
-            console.log "Saving"
             Hipster.Models.Route.set
                 time: @elapsed
                 bearings: Hipster.Collections.Bearings
             Hipster.Models.Route.save()
             Hipster.Views.BearingsListView.close()
-            Hipster.Views.ResultsView = new ResultsView
+            Hipster.Views.ResultsView3 = new ResultsView
+        else
+            $('#timer > h3').hide()
+            $('.missed').show()
 
 
     makeMovement: (model) =>
@@ -141,6 +162,8 @@ module.exports = class MapView extends Backbone.View
         deg = parseFloat model.get('degrees')
         ew = model.get('directionX')
         ns = model.get('directionY')
+
+        @distanceTravelled += dist
 
         label = @paper.text @x, @y, 0
 
@@ -197,6 +220,9 @@ module.exports = class MapView extends Backbone.View
                             'stroke-width':'3',
                             'stroke': "#ff0000"
                         }).toBack()
+                        rotatedLine.remove()
+                        $('#timer > h3').hide()
+                        $('.inside-buoys').show()
                     else
                         # Next
                         _this.trigger "step"
