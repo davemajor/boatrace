@@ -47,9 +47,11 @@ module.exports = class MapView extends Backbone.View
 
         buoys = [
             {x: 140, y: 150},
-            {x: 260, y: 400},
-            {x: 450, y: 480},
-            {x: 560, y: 200}
+            {x: 260, y: 500},
+            {x: 450, y: 580},
+            {x: 560, y: 300},
+            {x: 360, y: 100}
+
         ]
         _.each buoys, (buoy) =>
             @paper.image("images/buoy.png", buoy.x-12, buoy.y-12, 25, 25)
