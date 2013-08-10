@@ -9,7 +9,7 @@ module.exports = class BearingsListItemView extends Backbone.View
         @listenTo(@model, 'valid', @triggerValid)
 
     render: ->
-        $(@el).html @template
+        $(@el).html @template @model.toJSON()
         @
 
     triggerInvalid: ->

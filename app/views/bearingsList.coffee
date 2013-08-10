@@ -1,5 +1,4 @@
 BearingsListItemView = require 'views/bearingsListItem'
-BearingsCollection = require 'collections/bearings'
 BearingModel = require 'models/bearing'
 TimerView = require 'views/timer'
 
@@ -10,7 +9,6 @@ module.exports = class BearingsListView extends Backbone.View
     el: '.bearingsList'
 
     initialize: ->
-        Hipster.Collections.Bearings = new BearingsCollection
         Hipster.Collections.Bearings.on('add', @addNewItem)
         Hipster.Collections.Bearings.on('add remove', @limitBearings)
         @render()
@@ -30,7 +28,11 @@ module.exports = class BearingsListView extends Backbone.View
         $(@el).html @template
             top: topString + ' minutes'
         Hipster.Views.TimerView = new TimerView
-        @triggerAdd()
+        if Hipster.Collections.Bearings.models.length > 0
+            _.each Hipster.Collections.Bearings.models, (model) =>
+                @addNewItem model
+        else
+            @triggerAdd()
 
     limitBearings: ->
         num = Hipster.Collections.Bearings.models.length
