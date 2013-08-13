@@ -5,7 +5,10 @@ module.exports = class MapView extends Backbone.View
     el: '.map'
     template: require 'views/templates/map'
 
-    initialize: ->
+    initialize: (options) ->
+        @bretVictor = if options? && options.bretVictor?
+        then options.bretVictor else false
+
         @speed = 20
         @x = 100
         @y = 100
@@ -19,9 +22,27 @@ module.exports = class MapView extends Backbone.View
         @startTime = 0
         @distanceTravelled = 0
 
-        @on 'race', @race, this
-        @on 'step', @drawStep, this
-        @on 'tick', @tick, this
+        if @bretVictor
+            Hipster.Collections.Bearings.on 'redraw', =>
+                $('path').remove()
+                $('text').remove()
+                @paper.path('M25 35 L125 35').attr(
+                    'stroke':'white'
+                    'stroke-width':'2'
+                    'opacity': '0.4'
+                )
+                @paper.text(75, 25, "10 miles").attr(
+                    'font-family':'Helvetica'
+                    'fill':'white'
+                )
+                @x = 100
+                @y = 100
+                @drawStep()
+            , this
+        else
+            @on 'race', @race, this
+            @on 'step', @drawStep, this
+            @on 'tick', @tick, this
 
     reset: ->
         $('.error').hide()
@@ -76,46 +97,56 @@ module.exports = class MapView extends Backbone.View
         if !Hipster.Collections.Bearings.models[0].isValid()
             return
         @reset()
-        @endZone = @paper.circle(
-            @boat.attr('x') + 11
-            @boat.attr('y') + 12
-            0
-        ).attr(
-            "fill": "white"
-            "opacity": 0.2
-            "stroke": "none"
-        ).animate(
-            r: 40
-        , 200
-        ).toFront()
-        @startTime = new Date().getTime()
-        @playing = true
-        @timer = setTimeout @tick(), 100
+        if !@bretVictor
+            @endZone = @paper.circle(
+                @boat.attr('x') + 11
+                @boat.attr('y') + 12
+                0
+            ).attr(
+                "fill": "white"
+                "opacity": 0.2
+                "stroke": "none"
+            ).animate(
+                r: 40
+            , 200
+            ).toFront()
+            @startTime = new Date().getTime()
+            @playing = true
+            @timer = setTimeout @tick(), 100
         @drawStep()
 
     drawStep: ->
         attrs = {"stroke-dasharray":'.', 'stroke-width':'3', 'stroke': '#fff'}
+        if !@bretVictor
+            if @step < Hipster.Collections.Bearings.length
+                if Hipster.Collections.Bearings.models[@step].isValid()
+                    $("path").css('opacity', 0.4)
+                    @paper.image(
+                        "images/boat.png"
+                        @boat.attr("x")
+                        @boat.attr("y")
+                        22
+                        24
+                    ).attr
+                        opacity: 0.4
 
-        if @step < Hipster.Collections.Bearings.length
-            if Hipster.Collections.Bearings.models[@step].isValid()
-                $("path").css('opacity', 0.4)
-                @paper.image(
-                    "images/boat.png"
-                    @boat.attr("x")
-                    @boat.attr("y")
-                    22
-                    24
-                ).attr
-                    opacity: 0.4
-
-                @makeMovement Hipster.Collections.Bearings.at @step
+                    @makeMovement Hipster.Collections.Bearings.at @step
+                else
+                    @playing = false
+                    @check()
+                @step++
             else
                 @playing = false
                 @check()
-            @step++
         else
-            @playing = false
-            @check()
+            _.each Hipster.Collections.Bearings.models, (model) =>
+                if model.isValid()
+                    @makeMapStep model
+            @boat.attr(
+                x: @x - 11
+                y: @y - 12
+                opacity: 0.4
+            )
 
     render: ->
         @paper = Raphael(@el, '100%', '100%')
@@ -149,6 +180,7 @@ module.exports = class MapView extends Backbone.View
     makeMovement: (model) =>
         dist = parseFloat model.get('distance') * 10
         deg = parseFloat model.get('degrees')
+
         ew = model.get('directionX')
         ns = model.get('directionY')
 
@@ -237,3 +269,74 @@ module.exports = class MapView extends Backbone.View
             else
                 moveBoat()
         animateLine()
+
+    makeMapStep: (model) =>
+        dist = parseFloat model.get('distance') * 10
+        deg = parseFloat model.get('degrees')
+        if _.isNaN deg
+            deg = 0
+        ew = model.get('directionX')
+        ns = model.get('directionY')
+
+        @distanceTravelled += dist
+
+        dist = -dist if ew == "west"
+        mod = 1
+        if ns == "south"
+            label = @paper.text @x, @y + 20, 0
+            if ew == "west"
+                mod = -1
+        else
+            label = @paper.text @x, @y - 20, 0
+            if ew == "east"
+                mod = -1
+
+        label.attr(
+            'font-family':'Helvetica'
+            'fill':'white'
+            text: deg + "°"
+        )
+
+        ewLine = @paper.path("M" + @x + " " + @y + "L" + (@x + dist) + " " + @y)
+        .attr
+            "stroke-dasharray":'.'
+            'stroke-width':'3'
+            'stroke': '#fff'
+        .toBack()
+        ewLabelPos = ewLine.getPointAtLength(Math.abs dist)
+        if ew == "east"
+            ewLabel = @paper.text(ewLabelPos.x + 20, ewLabelPos.y, "E").attr(
+                'font-family':'Helvetica'
+                'fill':'white'
+            )
+        else
+            ewLabel = @paper.text(ewLabelPos.x - 20, ewLabelPos.y, "W").attr(
+                'font-family':'Helvetica'
+                'fill':'white'
+            )
+
+        line = ewLine.clone().toBack()
+        rotatedLine = @.paper.path(
+            Raphael.transformPath(
+                line.attr("path"), "r" + mod*deg + "," + @x + "," + @y
+            )
+        ).attr
+            "stroke-dasharray":'.'
+            'stroke-width':'3'
+            'stroke': '#fff'
+        target = rotatedLine.getPointAtLength(Math.abs dist)
+        @x = target.x
+        @y = target.y
+        $("path").css 'opacity', 0.4
+
+        # Check for boundary intersection
+        s = Raphael.pathIntersection(
+            @boundary.attr('path').toString()
+            rotatedLine.attr('path').toString()
+        )
+        if s.length > 0
+            @paper.path(rotatedLine.attr('path')).attr({
+                'stroke-dasharray':'.',
+                'stroke-width':'3',
+                'stroke': "#ff0000"
+            }).toBack()

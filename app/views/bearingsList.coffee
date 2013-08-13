@@ -8,7 +8,10 @@ module.exports = class BearingsListView extends Backbone.View
     template: require 'views/templates/bearingsList'
     el: '.bearingsList'
 
-    initialize: ->
+    initialize: (options) ->
+        @bretVictor = if options? && options.bretVictor?
+        then options.bretVictor else false
+
         Hipster.Collections.Bearings.on('add', @addNewItem)
         Hipster.Collections.Bearings.on('add remove', @limitBearings)
         @render()
@@ -27,6 +30,7 @@ module.exports = class BearingsListView extends Backbone.View
         topString = topString.replace(/,([^,]*)$/,' &'+'$1')
         $(@el).html @template
             top: topString + ' minutes'
+            bretVictor: @bretVictor
         Hipster.Views.TimerView = new TimerView
         if Hipster.Collections.Bearings.models.length > 0
             _.each Hipster.Collections.Bearings.models, (model) =>

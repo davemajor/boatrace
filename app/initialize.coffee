@@ -8,12 +8,10 @@ Hipster.Collections ?= {}
 require 'lib/helpers'
 
 # Initialize Router
-require 'routers/main'
-
-AppView = require 'views/appView'
+AppRouter = require 'routers/main'
 
 $ ->
     # Initialize Backbone History
+    Hipster.Routers.Main = new AppRouter
     Backbone.history.start pushState: yes
-    Hipster.Views.AppView = new AppView
 

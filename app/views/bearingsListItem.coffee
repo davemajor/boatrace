@@ -24,6 +24,7 @@ module.exports = class BearingsListItemView extends Backbone.View
 
     updateInput: (evt) ->
         @model.set evt.currentTarget.name, evt.currentTarget.value
+        Hipster.Collections.Bearings.trigger 'redraw'
 
     events: ->
         'click .action-remove-item': "clear"
