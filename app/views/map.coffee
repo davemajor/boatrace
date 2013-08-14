@@ -6,8 +6,7 @@ module.exports = class MapView extends Backbone.View
     template: require 'views/templates/map'
 
     initialize: (options) ->
-        @bretVictor = if options? && options.bretVictor?
-        then options.bretVictor else false
+        @bretVictor = options.bretVictor
 
         @speed = 20
         @x = 100

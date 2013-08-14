@@ -10,20 +10,16 @@ module.exports = class AppViewView extends Backbone.View
     el: '.app'
 
     initialize: (options) ->
-        @bretVictor = if options? && options.bretVictor?
-        then options.bretVictor else false
-
+        @bretVictor = options.bretVictor
         Hipster.Collections.Bearings = new BearingsCollection
-        Hipster.Collections.Routes = new RoutesCollection
-        Hipster.Collections.Routes.on 'sync', @render
         Hipster.Models.Route = new RouteModel
 
+        Hipster.Collections.Routes = new RoutesCollection
+        Hipster.Collections.Routes.on 'sync', @render, this
         Hipster.Collections.Routes.fetch()
-
 
     render: ->
         Hipster.Views.BearingsListView = new BearingsListView
             bretVictor: @bretVictor
         Hipster.Views.MapView = new MapView
             bretVictor: @bretVictor
-

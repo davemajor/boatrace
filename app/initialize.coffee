@@ -14,4 +14,3 @@ $ ->
     # Initialize Backbone History
     Hipster.Routers.Main = new AppRouter
     Backbone.history.start pushState: yes
-

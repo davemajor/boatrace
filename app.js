@@ -39,14 +39,9 @@ app.configure(function() {
   app.use(express.bodyParser());
   app.use(express.methodOverride());
   app.use('/', express.static(__dirname + '/public'));
+  app.use('/bretvictor', express.static(__dirname + '/public'));
   app.use('/', app.router);
 });
-
-app.get("/standings", function(req, res) {
-    var newUrl = req.protocol + '://' + req.get('Host') + '/#'+ req.url;
-    return res.redirect(newUrl);
-});
-
 
 app.get('/api/routes', function (req, res){
   var query = Route.find({}).lean()
@@ -69,7 +64,6 @@ app.post('/api/routes', function(req, res, next){
     }
   })
 });
-
 
 app.use(app.router);
 
