@@ -327,7 +327,6 @@ module.exports = class MapView extends Backbone.View
         @x = target.x
         @y = target.y
         $("path").css 'opacity', 0.4
-
         # Check for boundary intersection
         s = Raphael.pathIntersection(
             @boundary.attr('path').toString()
