@@ -7,19 +7,7 @@ module.exports = class MapView extends Backbone.View
 
     initialize: (options) ->
         @bretVictor = options.bretVictor
-
         @speed = 20
-        @x = 100
-        @y = 100
-        @steps = []
-        @step = 0
-        @time = 0
-        @elapsed = 0
-        @render()
-        @timer = 0
-        @playing = false
-        @startTime = 0
-        @distanceTravelled = 0
 
         if @bretVictor
             Hipster.Collections.Bearings.on 'redraw', =>
@@ -43,6 +31,8 @@ module.exports = class MapView extends Backbone.View
             @on 'step', @drawStep, this
             @on 'tick', @tick, this
 
+        @render()
+
     reset: ->
         $('.error').hide()
         clearTimeout(@timer)
@@ -62,26 +52,37 @@ module.exports = class MapView extends Backbone.View
         @time = 0
         @elapsed = 0
         @step = 0
+        @timer = 0
+        @playing = false
         @distanceTravelled = 0
+        @startTime = 0
         @boat = @paper.image("images/boat.png", @x-11, @y-12, 22, 24)
-
-        buoys = [
+        @endZone = @paper.circle(
+            @boat.attr('x') + 11
+            @boat.attr('y') + 12
+            40
+        ).attr(
+            "fill": "white"
+            "opacity": 0.2
+            "stroke": "none"
+        )
+        @drawBouys([
             {x: 140, y: 150},
             {x: 260, y: 500},
             {x: 450, y: 580},
             {x: 560, y: 300},
-            {x: 360, y: 100}
+            {x: 360, y: 100}]
+        )
 
-        ]
+    drawBouys: (buoys) ->
         _.each buoys, (buoy) =>
             @paper.image("images/buoy.png", buoy.x-12, buoy.y-12, 25, 25)
-
-        @boundary = @paper.path 'M{0} {1} L{2} {3} {4} {5} {6} {7}z',
+        @boundary = @paper.path 'M{0} {1} L{2} {3} {4} {5} {6} {7} {8} {9}z',
         buoys[0].x, buoys[0].y, buoys[1].x, buoys[1].y,
-        buoys[2].x, buoys[2].y, buoys[3].x, buoys[3].y
+        buoys[2].x, buoys[2].y, buoys[3].x, buoys[3].y,
+        buoys[4].x, buoys[4].y
         @boundary.attr
             'stroke': 'none'
-        
 
     tick: ->
         if @playing
