@@ -238,6 +238,7 @@ module.exports = class MapView extends Backbone.View
         else
             $('#timer > h3').hide()
             $('.missed').show()
+            $('button').removeAttr 'disabled'
 
 
     makeMovement: (model) =>
