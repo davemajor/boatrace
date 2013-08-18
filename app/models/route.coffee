@@ -1,2 +1,2 @@
 module.exports = class RouteModel extends Backbone.Model
-    url: 'api/routes'
+    url: 'http://testing.davemajor.net/boatrace/api/routes'
