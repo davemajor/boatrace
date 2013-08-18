@@ -3,8 +3,8 @@
     <input name="distance" class="edit form-control input-small" type="number" value="{{distance}}"> 
     <strong class="display">{{distance}}</strong>
     miles at 
+    <strong class="display"> {{degrees}}</strong>
     <input name="degrees" class="edit form-control input-small" type="number" min="0" max="360" step="1" value="{{degrees}}"> degrees
-    <strong class="display">{{degrees}}</strong>
     <select class="edit form-control input-small" name="directionY" value="{{directionY}}">
       {{#select directionY}}
       <option value="north">north</option>
@@ -12,14 +12,13 @@
       {{/select}}
     </select>
     <strong class="display">{{directionY}}</strong>
-
+    <span> of </span>
     <select class="edit form-control input-small" name="directionX" value="{{directionX}}">
       {{#select directionX}}
       <option value="east">east</option>
       <option value="west">west</option>
       {{/select}}
     </select>
-    <span class="display"> of </span>
     <strong class="display">{{directionX}}</strong>
 
 <i class="icon-remove action-remove-item edit"></i>

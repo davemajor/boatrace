@@ -316,6 +316,7 @@ module.exports = class MapView extends Backbone.View
                             line.remove()
                             $('#timer > h3').hide()
                             $('.inside-buoys').show()
+                            $('button').removeAttr 'disabled'
                         else
                             # Next
                             _this.trigger "step"
