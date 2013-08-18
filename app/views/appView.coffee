@@ -8,18 +8,27 @@ RouteModel = require 'models/route'
 module.exports = class AppViewView extends Backbone.View
     className: 'appView'
     el: '.app'
+    page2: false
 
-    initialize: (options) ->
-        @bretVictor = options.bretVictor
+    initialize: ->
+        page = Hipster.Routers.Main.page
         Hipster.Collections.Bearings = new BearingsCollection
         Hipster.Models.Route = new RouteModel
 
-        Hipster.Collections.Routes = new RoutesCollection
-        Hipster.Collections.Routes.on 'sync', @render, this
-        Hipster.Collections.Routes.fetch()
+        if page == 'page2'
+            @renderPage2()
+        else
+            Hipster.Collections.Routes = new RoutesCollection
+            Hipster.Collections.Routes.on 'sync', @render, this
+            # Hipster.Collections.Routes.fetch()
+            @render()
 
     render: ->
         Hipster.Views.BearingsListView = new BearingsListView
-            bretVictor: @bretVictor
         Hipster.Views.MapView = new MapView
-            bretVictor: @bretVictor
+
+    renderPage2: ->
+        Hipster.Collections.Routes = new RoutesCollection
+        
+        Hipster.Views.MapView = new MapView
+        Hipster.Views.BearingsListView = new BearingsListView

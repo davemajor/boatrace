@@ -3,13 +3,19 @@ module.exports = class BearingsListItemView extends Backbone.View
     tagName: 'li'
     template: require 'views/templates/bearingsListItem'
 
-    initialize: ->
+    initialize: (options) ->
+        @readonly = options.readonly
         @listenTo(@model, 'destroy', @remove)
         @listenTo(@model, 'invalid', @triggerInvalid)
         @listenTo(@model, 'valid', @triggerValid)
 
     render: ->
-        $(@el).html @template @model.toJSON()
+        $(@el).html @template
+            distance: @model.get('distance')
+            degrees: @model.get('degrees')
+            directionX: @model.get('directionX')
+            directionY: @model.get('directionY')
+            readonly: @readonly
         @
 
     triggerInvalid: ->
@@ -32,3 +38,8 @@ module.exports = class BearingsListItemView extends Backbone.View
         'keyup input': 'updateInput'
         'change select': 'updateInput'
         'click select': 'updateInput'
+
+    window.Handlebars.registerHelper "select", (value, options) ->
+        $el = $("<select />").html(options.fn(this))
+        $el.find("[value=" + value + "]").attr selected: "selected"
+        $el.html()

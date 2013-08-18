@@ -1,18 +1,25 @@
-<div class="row form-inline">
+<div class="row form-inline {{#if readonly}}readonly{{/if}}">
     Head
-    <input name="distance" class="form-control input-small" type="number" value="{{distance}}"> 
+    <input name="distance" class="edit form-control input-small" type="number" value="{{distance}}"> 
+    <strong class="display">{{distance}}</strong>
     miles at 
-    <input name="degrees" class="form-control input-small" type="number" min="0" max="360" step="1" value="{{degrees}}"> degrees
-    
-    <select class="form-control input-small" name="directionY" value="{{directionY}}">
+    <input name="degrees" class="edit form-control input-small" type="number" min="0" max="360" step="1" value="{{degrees}}"> degrees
+    <strong class="display">{{degrees}}</strong>
+    <select class="edit form-control input-small" name="directionY" value="{{directionY}}">
+      {{#select directionY}}
       <option value="north">north</option>
       <option value="south">south</option>
+      {{/select}}
     </select>
-   of
-    <select class="form-control input-small" name="directionX" value="{{directionX}}">
+    <strong class="display">{{directionY}}</strong>
+
+    <select class="edit form-control input-small" name="directionX" value="{{directionX}}">
+      {{#select directionX}}
       <option value="east">east</option>
       <option value="west">west</option>
+      {{/select}}
     </select>
+    <strong class="display">{{directionX}}</strong>
 
-<i class="icon-remove action-remove-item"></i>
+<i class="icon-remove action-remove-item edit"></i>
 </div>

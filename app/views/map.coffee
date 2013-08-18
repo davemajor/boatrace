@@ -4,48 +4,89 @@ module.exports = class MapView extends Backbone.View
     className: 'map'
     el: '.map'
     template: require 'views/templates/map'
+    lineAttrs:
+        'stroke':'white'
+        'stroke-width':'3'
+        "stroke-dasharray":'.'
+        'opacity': '0.4'
 
-    initialize: (options) ->
-        @bretVictor = options.bretVictor
-        @speed = 20
+    textAttrs:
+        'font-family':'Helvetica'
+        'fill':'white'
 
-        if @bretVictor
-            Hipster.Collections.Bearings.on 'redraw', =>
-                $('path').remove()
-                $('text').remove()
-                @paper.path('M25 35 L125 35').attr(
-                    'stroke':'white'
-                    'stroke-width':'2'
-                    'opacity': '0.4'
-                )
-                @paper.text(75, 25, "10 miles").attr(
-                    'font-family':'Helvetica'
-                    'fill':'white'
-                )
-                @x = 100
-                @y = 100
-                @drawStep()
-            , this
-        else
+    initialize: ->
+        @page = Hipster.Routers.Main.page
+        @speed = 0.4
+        @on 'reset', @reset, this
+        if @page == 'page2'
             @on 'race', @race, this
             @on 'step', @drawStep, this
-            @on 'tick', @tick, this
+            $('button').attr 'disabled', 'disabled'
+            @render()
+            @renderPage2()
+        else
+            
+            if @page == 'bretVictor'
+                Hipster.Collections.Bearings.on 'redraw', =>
+                    $('path').remove()
+                    $('text').remove()
+                    @drawScale()
+                    @x = 100
+                    @y = 100
+                    @drawStep()
+                , this
+            else
+                @on 'race', @race, this
+                @on 'step', @drawStep, this
+                @on 'tick', @tick, this
 
-        @render()
+            @render()
+            @reset()
+    drawScale: ->
+        @paper.path('M25 35 L125 35').attr(
+            'stroke':'white'
+            'stroke-width':'3'
+            'opacity': '0.4'
+        )
+        @paper.text(75, 25, "10 miles").attr @textAttrs
+
+    renderPage2: ->
+        @x = 100
+        @y = 100
+        @reset()
+        @boat = @paper.image("images/boat.png", @x-11, @y-12, 22, 24)
+        @boat.node.classList.add('boat')
+        $(@paper.canvas).on 'click tap', (evt) =>
+            $('button').removeAttr 'disabled'
+            if !@guessBoat?
+                @guessBoat = @paper.image(
+                    "images/boat.png"
+                    evt.clientX-11,
+                    evt.clientY-12,
+                    22,
+                    24
+                )
+            else
+                @guessBoat.attr(
+                    x: evt.clientX-11,
+                    y: evt.clientY-12
+                )
 
     reset: ->
         $('.error').hide()
+        if @page == 'page2'
+            $('button').attr 'disabled', 'disabled'
+        if @guessBoat?
+            @guessBoat.remove()
+            @guessBoat = undefined
         clearTimeout(@timer)
-        @paper.clear()
-        @paper.path('M25 35 L125 35').attr(
-            'stroke':'white'
-            'stroke-width':'2'
-            'opacity': '0.4'
-        )
-        @paper.text(75, 25, "10 miles").attr(
-            'font-family':'Helvetica'
-            'fill':'white'
-        )
+        $('.boat').remove()
+        $('.buoy').remove()
+        $('circle').remove()
+        $('text').remove()
+        $('path').remove()
+
+        @drawScale()
         @steps = []
         @x = 100
         @y = 100
@@ -57,47 +98,56 @@ module.exports = class MapView extends Backbone.View
         @distanceTravelled = 0
         @startTime = 0
         @boat = @paper.image("images/boat.png", @x-11, @y-12, 22, 24)
-        @endZone = @paper.circle(
-            @boat.attr('x') + 11
-            @boat.attr('y') + 12
-            40
-        ).attr(
-            "fill": "white"
-            "opacity": 0.2
-            "stroke": "none"
-        )
-        @drawBouys([
-            {x: 140, y: 150},
-            {x: 260, y: 500},
-            {x: 450, y: 580},
-            {x: 560, y: 300},
-            {x: 360, y: 100}]
-        )
+        @boat.node.classList.add('boat')
 
-    drawBouys: (buoys) ->
+        if  @page == 'bretVictor'
+            @endZone = @paper.circle(
+                @boat.attr('x') + 11
+                @boat.attr('y') + 12
+                40
+            ).attr(
+                "fill": "white"
+                "opacity": 0.2
+                "stroke": "none"
+            )
+        if @page != 'page2'
+            @drawBuoys([
+                {x: 140, y: 150},
+                {x: 260, y: 500},
+                {x: 450, y: 580},
+                {x: 560, y: 300},
+                {x: 360, y: 100}]
+            )
+
+    drawBuoys: (buoys) ->
         _.each buoys, (buoy) =>
-            @paper.image("images/buoy.png", buoy.x-12, buoy.y-12, 25, 25)
+            b = @paper.image("images/buoy.png", buoy.x-12, buoy.y-12, 25, 25)
+            b.node.classList.add 'buoy'
         @boundary = @paper.path 'M{0} {1} L{2} {3} {4} {5} {6} {7} {8} {9}z',
         buoys[0].x, buoys[0].y, buoys[1].x, buoys[1].y,
         buoys[2].x, buoys[2].y, buoys[3].x, buoys[3].y,
         buoys[4].x, buoys[4].y
         @boundary.attr
             'stroke': 'none'
+        $(@boundary.node).addClass 'boundary'
 
     tick: ->
         if @playing
             @time += 100
             @elapsed = Math.floor(@time / 1000) / 10
             @elapsed += ".0"  if Math.round(@elapsed) is @elapsed
-            Hipster.Views.TimerView.trigger 'update', @elapsed
+            if @page == 'page1'
+                Hipster.Views.TimerView.trigger 'update', @elapsed
             diff = (new Date().getTime() - @startTime) - @time
             @timer = setTimeout(=> @trigger 'tick', (100 - diff))
 
     race: ->
+        $('button').attr 'disabled', 'disabled'
         if !Hipster.Collections.Bearings.models[0].isValid()
             return
-        @reset()
-        if !@bretVictor
+        if @page != 'page2'
+            @reset()
+        if @page != 'bretVictor'
             @endZone = @paper.circle(
                 @boat.attr('x') + 11
                 @boat.attr('y') + 12
@@ -117,11 +167,11 @@ module.exports = class MapView extends Backbone.View
 
     drawStep: ->
         attrs = {"stroke-dasharray":'.', 'stroke-width':'3', 'stroke': '#fff'}
-        if !@bretVictor
+        if @page != 'bretVictor'
             if @step < Hipster.Collections.Bearings.length
                 if Hipster.Collections.Bearings.models[@step].isValid()
                     $("path").css('opacity', 0.4)
-                    @paper.image(
+                    b = @paper.image(
                         "images/boat.png"
                         @boat.attr("x")
                         @boat.attr("y")
@@ -129,7 +179,7 @@ module.exports = class MapView extends Backbone.View
                         24
                     ).attr
                         opacity: 0.4
-
+                    b.node.classList.add('boat')
                     @makeMovement Hipster.Collections.Bearings.at @step
                 else
                     @playing = false
@@ -137,8 +187,12 @@ module.exports = class MapView extends Backbone.View
                 @step++
             else
                 @playing = false
-                @check()
+                if @page == 'page2'
+                    @checkPage2()
+                else
+                    @check()
         else
+            debugger
             _.each Hipster.Collections.Bearings.models, (model) =>
                 if model.isValid()
                     @makeMapStep model
@@ -150,7 +204,16 @@ module.exports = class MapView extends Backbone.View
 
     render: ->
         @paper = Raphael(@el, '100%', '100%')
-        @reset()
+
+    checkPage2: ->
+        deltaX = @boat.attr().x - @guessBoat.attr().x
+        deltaY = @boat.attr().y - @guessBoat.attr().y
+
+        delta = Math.sqrt(Math.pow(deltaY, 2) + Math.pow(deltaX, 2))
+        delta = (delta / 10).toFixed(1)
+        Hipster.Views.BearingsListView.close()
+        Hipster.Views.ResultsView = new ResultsView
+            distance: delta
 
     check: ->
         if _this.distanceTravelled < _this.boundary.getTotalLength()
@@ -171,7 +234,7 @@ module.exports = class MapView extends Backbone.View
                 bearings: Hipster.Collections.Bearings
             Hipster.Models.Route.save()
             Hipster.Views.BearingsListView.close()
-            Hipster.Views.ResultsView3 = new ResultsView
+            Hipster.Views.ResultsView = new ResultsView
         else
             $('#timer > h3').hide()
             $('.missed').show()
@@ -197,30 +260,23 @@ module.exports = class MapView extends Backbone.View
             if ew == "east"
                 mod = -1
 
-        label.attr(
-            'font-family':'Helvetica'
-            'fill':'white'
-        )
+        label.attr @textAttrs
 
         ewLine = @paper.path("M" + @x + " " + @y + "L" + (@x + dist) + " " + @y)
-        .attr
-            "stroke-dasharray":'.'
-            'stroke-width':'3'
-            'stroke': '#fff'
-        .toBack()
+        .attr @lineAttrs
+        ewLine.toBack()
         ewLabelPos = ewLine.getPointAtLength(Math.abs dist)
         if ew == "east"
             ewLabel = @paper.text(ewLabelPos.x + 20, ewLabelPos.y, "E").attr(
-                'font-family':'Helvetica'
-                'fill':'white'
+                @textAttrs
             )
         else
             ewLabel = @paper.text(ewLabelPos.x - 20, ewLabelPos.y, "W").attr(
-                'font-family':'Helvetica'
-                'fill':'white'
+                @textAttrs
             )
         line = ewLine.clone().toBack()
         i = 0
+
         animateLine = =>
             moveBoat = =>
                 rotatedLine = _this.paper.path(
@@ -232,32 +288,35 @@ module.exports = class MapView extends Backbone.View
                 _this.boat.animate
                     x: target.x - 11
                     y: target.y - 12
-                , 500, =>
+                , Math.abs(dist) / _this.speed, =>
                     _this.x = target.x
                     _this.y = target.y
                     ewLine.remove()
                     ewLabel.remove()
                     $("path").css 'opacity', 0.4
 
-                    # Check for boundary intersection
-                    s = Raphael.pathIntersection(
-                        _this.boundary.attr('path').toString()
-                        rotatedLine.attr('path').toString()
-                    )
-                    if s.length > 0
-                        # Kill it
-                        _this.playing = false
-                        _this.paper.path(rotatedLine.attr('path')).attr({
-                            'stroke-dasharray':'.',
-                            'stroke-width':'3',
-                            'stroke': "#ff0000"
-                        }).toBack()
-                        line.remove()
-                        $('#timer > h3').hide()
-                        $('.inside-buoys').show()
-                    else
-                        # Next
+                    if _this.page == 'page2'
                         _this.trigger "step"
+                    else
+                        # Check for boundary intersection
+                        doesIntersect = @checkForIntersect(
+                            _this.boundary.attr('path').toString()
+                            rotatedLine.attr('path').toString()
+                        )
+                        if doesIntersect
+                            # Kill it
+                            _this.playing = false
+                            _this.paper.path(rotatedLine.attr('path')).attr({
+                                'stroke-dasharray':'.',
+                                'stroke-width':'3',
+                                'stroke': "#ff0000"
+                            }).toBack()
+                            line.remove()
+                            $('#timer > h3').hide()
+                            $('.inside-buoys').show()
+                        else
+                            # Next
+                            _this.trigger "step"
 
             line.transform "r" + mod*i + ","+@x+","+@y
 
@@ -269,6 +328,10 @@ module.exports = class MapView extends Backbone.View
             else
                 moveBoat()
         animateLine()
+
+    checkForIntersect: (boundary, line) ->
+        s = Raphael.pathIntersection boundary, line
+        return s.length > 0
 
     makeMapStep: (model) =>
         dist = parseFloat model.get('distance') * 10
@@ -291,28 +354,21 @@ module.exports = class MapView extends Backbone.View
             if ew == "east"
                 mod = -1
 
-        label.attr(
-            'font-family':'Helvetica'
-            'fill':'white'
+        label.attr @textAttrs
+        label.attr
             text: deg + "°"
-        )
 
         ewLine = @paper.path("M" + @x + " " + @y + "L" + (@x + dist) + " " + @y)
-        .attr
-            "stroke-dasharray":'.'
-            'stroke-width':'3'
-            'stroke': '#fff'
-        .toBack()
+        ewLine.attr @lineAttrs
+        ewLine.toBack()
         ewLabelPos = ewLine.getPointAtLength(Math.abs dist)
         if ew == "east"
             ewLabel = @paper.text(ewLabelPos.x + 20, ewLabelPos.y, "E").attr(
-                'font-family':'Helvetica'
-                'fill':'white'
+                @textAttrs
             )
         else
             ewLabel = @paper.text(ewLabelPos.x - 20, ewLabelPos.y, "W").attr(
-                'font-family':'Helvetica'
-                'fill':'white'
+                @textAttrs
             )
 
         line = ewLine.clone().toBack()
@@ -320,22 +376,24 @@ module.exports = class MapView extends Backbone.View
             Raphael.transformPath(
                 line.attr("path"), "r" + mod*deg + "," + @x + "," + @y
             )
-        ).attr
-            "stroke-dasharray":'.'
-            'stroke-width':'3'
-            'stroke': '#fff'
+        ).attr @lineAttrs
+
         target = rotatedLine.getPointAtLength(Math.abs dist)
         @x = target.x
         @y = target.y
         $("path").css 'opacity', 0.4
-        # Check for boundary intersection
-        s = Raphael.pathIntersection(
-            @boundary.attr('path').toString()
-            rotatedLine.attr('path').toString()
-        )
-        if s.length > 0
-            @paper.path(rotatedLine.attr('path')).attr({
-                'stroke-dasharray':'.',
-                'stroke-width':'3',
-                'stroke': "#ff0000"
-            }).toBack()
+        if @page != 'page2'
+            # Check for boundary intersection
+            doesIntersect = @checkForIntersect(
+                @boundary.attr('path').toString()
+                rotatedLine.attr('path').toString()
+            )
+            if doesIntersect
+                @paper.path(rotatedLine.attr('path')).attr({
+                    'stroke-dasharray':'.',
+                    'stroke-width':'3',
+                    'stroke': "#ff0000"
+                }).toBack()
+    close: ->
+        $(@el).empty()
+        $(@el).unbind()
