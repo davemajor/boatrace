@@ -44,7 +44,7 @@ app.configure(function() {
 });
 
 app.get('/api/routes', function (req, res){
-  var query = Route.find({}).lean()
+  var query = Route.find({},{time: 1, bearings: 0}).lean()
   return query.exec(function (err, routes) {
     if (!err) {
       return res.json(routes);

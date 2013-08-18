@@ -20,8 +20,7 @@ module.exports = class AppViewView extends Backbone.View
         else
             Hipster.Collections.Routes = new RoutesCollection
             Hipster.Collections.Routes.on 'sync', @render, this
-            # Hipster.Collections.Routes.fetch()
-            @render()
+            Hipster.Collections.Routes.fetch()
 
     render: ->
         Hipster.Views.BearingsListView = new BearingsListView
