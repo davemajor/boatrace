@@ -219,6 +219,7 @@ module.exports = class MapView extends Backbone.View
         if _this.distanceTravelled < _this.boundary.getTotalLength()
             $('#timer > h3').hide()
             $('.too-short').show()
+            $('button').removeAttr 'disabled'
             return
         inEndPoint = @paper.getElementsByPoint(
             @boat.attr('x')
