@@ -53,7 +53,7 @@ module.exports = class ResultsViewView extends Backbone.View
     page2: ->
         Hipster.Views.MapView.close()
         @close()
-        Backbone.history.navigate('boatrace/page2',{trigger:true})
+        Backbone.history.navigate('boatrace/page2/',{trigger:true})
 
     events:
         'click button[name="action-try-again"]': 'close'

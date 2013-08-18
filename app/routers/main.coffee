@@ -4,7 +4,7 @@ module.exports = class AppRouter extends Backbone.Router
     page: ''
     routes:
         "boatrace/bretvictor/":"bretvictor"
-        "boatrace/page2":"page2"
+        "boatrace/page2/":"page2"
         "*path":"page1"
 
     page1:(path) ->
