@@ -82,10 +82,17 @@ module.exports = class BearingsListView extends Backbone.View
         times = times.getUnique()
         top = _.first times, 5
 
+        bottom = _.last times, 5
+
         topString = top.join ', '
         topString = topString.replace(/,([^,]*)$/,' &'+'$1')
+
+        bottomString = bottom.join ', '
+        bottomString = bottomString.replace(/,([^,]*)$/,' &'+'$1')
+        
         $(@el).html @template
             top: topString + ' minutes'
+            bottom: bottomString + ' minutes'
             bretVictor: @page == 'bretVictor'
         Hipster.Views.TimerView = new TimerView
         if Hipster.Collections.Bearings.models.length > 0
