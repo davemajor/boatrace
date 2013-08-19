@@ -55,7 +55,7 @@ module.exports = class MapView extends Backbone.View
         @y = 100
         @reset()
         @boat = @paper.image("images/boat.png", @x-11, @y-12, 22, 24)
-        @boat.node.classList.add('boat')
+        @boat.node.className.baseVal = 'boat'
         $(@paper.canvas).on 'click tap', (evt) =>
             $('button').removeAttr 'disabled'
             if !@guessBoat?
@@ -98,7 +98,7 @@ module.exports = class MapView extends Backbone.View
         @distanceTravelled = 0
         @startTime = 0
         @boat = @paper.image("images/boat.png", @x-11, @y-12, 22, 24)
-        @boat.node.classList.add('boat')
+        @boat.node.className.baseVal = 'boat'
 
         if  @page == 'bretVictor'
             @endZone = @paper.circle(
@@ -122,7 +122,7 @@ module.exports = class MapView extends Backbone.View
     drawBuoys: (buoys) ->
         _.each buoys, (buoy) =>
             b = @paper.image("images/buoy.png", buoy.x-12, buoy.y-12, 25, 25)
-            b.node.classList.add 'buoy'
+            b.node.className.baseVal = 'buoy'
         @boundary = @paper.path 'M{0} {1} L{2} {3} {4} {5} {6} {7} {8} {9}z',
         buoys[0].x, buoys[0].y, buoys[1].x, buoys[1].y,
         buoys[2].x, buoys[2].y, buoys[3].x, buoys[3].y,
@@ -181,7 +181,7 @@ module.exports = class MapView extends Backbone.View
                         24
                     ).attr
                         opacity: 0.4
-                    b.node.classList.add('boat')
+                    b.node.className.baseVal = 'boat'
                     @makeMovement Hipster.Collections.Bearings.at @step
                 else
                     @playing = false
