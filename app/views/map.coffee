@@ -218,7 +218,7 @@ module.exports = class MapView extends Backbone.View
             distance: delta
 
     check: ->
-        if _this.distanceTravelled < _this.boundary.getTotalLength()
+        if this.distanceTravelled < this.boundary.getTotalLength()
             $('#timer > h3').hide()
             $('.too-short').show()
             $('button').removeAttr 'disabled'
