@@ -139,7 +139,7 @@ module.exports = class MapView extends Backbone.View
             if @page == 'page1'
                 Hipster.Views.TimerView.trigger 'update', @elapsed
             diff = (new Date().getTime() - @startTime) - @time
-            @timer = setTimeout(=> @trigger 'tick', (100 - diff))
+            @timer = setTimeout(=>@trigger 'tick',(100 - diff))
 
     race: ->
         $('button').attr 'disabled', 'disabled'
@@ -162,7 +162,9 @@ module.exports = class MapView extends Backbone.View
             ).toFront()
             @startTime = new Date().getTime()
             @playing = true
-            @timer = setTimeout @tick(), 100
+            @timer = setTimeout(=>
+                @tick()
+            , 100)
         @drawStep()
 
     drawStep: ->
@@ -327,7 +329,9 @@ module.exports = class MapView extends Backbone.View
                 text: i + "°"
             if i < Math.abs deg
                 i++
-                setTimeout animateLine, 10
+                setTimeout(=>
+                    animateLine()
+                , 10)
             else
                 moveBoat()
         animateLine()

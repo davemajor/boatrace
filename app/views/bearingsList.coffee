@@ -11,10 +11,9 @@ module.exports = class BearingsListView extends Backbone.View
 
     initialize: ->
         @page = Hipster.Routers.Main.page
-
         if @page == 'page2'
-            mapWidth = $('svg').width()
-            mapHeight = $('svg').height()
+            mapWidth = $('.map').width()
+            mapHeight = $('.map').height()
 
             @readonly = true
             bearings = []
